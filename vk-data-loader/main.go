@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	vkapi "github.com/romanraspopov/golang-vk-api"
@@ -53,6 +53,12 @@ type UserCity struct {
 	Title string `json:"title"`
 }
 
+type IndexedPost struct {
+	// Text string `xml:"abstract"`
+	Text string
+	ID   int
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -69,26 +75,46 @@ func main() {
 
 func loadGroupsData(client *vkapi.VKClient) {
 	groups := getGroups()
+	log.Printf("Загрузка данных групп\n")
 	for _, group := range groups {
-		getAndSaveWallPostByGroupName(client, group.Name)
+		getAndIndexedWallPostByGroupName(client, group.Name)
 	}
 }
 
-func getAndSaveWallPostByGroupName(client *vkapi.VKClient, groupName string) {
+func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) {
+	var posts []IndexedPost
+	var indexedPost IndexedPost
 	wall, err := client.WallGet(groupName, 100, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for _, post := range wall.Posts {
-		fmt.Printf("Wall post: %v\n", post)
+		// fmt.Printf("Wall post: %v\n", post.Text)
+		indexedPost.ID = post.ID
+		indexedPost.Text = post.Text
+
+		posts = append(posts, indexedPost)
 	}
+
+	search(posts, "в тг закончился первый тур")
 }
 
 func getGroups() []MockGroup {
 	return []MockGroup{
 		{Name: "trenchcrusade"},
-		{Name: "nvp_73"},
-		{Name: "ad_ka4alka"},
+		// {Name: "nvp_73"},
+		// {Name: "ad_ka4alka"},
 	}
+}
+
+func search(docs []IndexedPost, term string) []IndexedPost {
+	var r []IndexedPost
+	for _, doc := range docs {
+		if strings.Contains(doc.Text, term) {
+			r = append(r, doc)
+			log.Printf("Зафиксированно вхождение\n")
+		}
+	}
+	return r
 }
