@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	"strings"
-	"unicode"
+
+	tokenizer "github.com/linealnan/glavredusgo/fts/internal"
 )
 
 // Full-Text Search (FTS)
@@ -12,15 +12,8 @@ import (
 // https://github.com/akrylysov/simplefts
 func main() {
 	log.Printf("Токенизируем...\n")
-	tokens := tokenize("Текст для теста")
+	tokens := tokenizer.Tokenize("Текст для теста")
 	for _, token := range tokens {
 		log.Printf("%v\n", token)
 	}
-}
-
-func tokenize(text string) []string {
-	return strings.FieldsFunc(text, func(r rune) bool {
-		// Split on any character that is not a letter or a number.
-		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
-	})
 }
