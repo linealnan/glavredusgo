@@ -63,7 +63,7 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) 
 		// log.Printf("Wall post: %v\n", post.Text)
 		document.ID = post.ID
 		document.Text = post.Text
-		document.URL = "https://vk.com/trenchcrusade?w=wall-226198546_21145" + strconv.Itoa(post.ID)
+		document.URL = "https://vk.com/trenchcrusade?w=wall-226198546_" + strconv.Itoa(post.ID)
 
 		documents = append(documents, document)
 	}
@@ -82,9 +82,11 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) 
 	log.Printf("Search found %d documents in %v", len(matchedIDs), time.Since(start))
 
 	for _, id := range matchedIDs {
-		// doc := documents[id]
-		//log.Printf("%d\t%s\n", id, doc.URL)
-		log.Printf("%s\n", "https://vk.com/trenchcrusade?w=wall-226198546_"+strconv.Itoa(id))
+		for _, doc := range documents {
+			if doc.ID == id {
+				log.Printf("%d\t%s\n", id, doc.URL)
+			}
+		}
 	}
 }
 
