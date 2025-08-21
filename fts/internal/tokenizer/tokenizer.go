@@ -32,6 +32,7 @@ func lowercaseFilter(tokens []string) []string {
 	return r
 }
 
+// КАЖЕТСЯ НЕ РАБОТАЕТ
 // https://pkg.go.dev/github.com/toadharvard/stopwords-iso#section-readme
 func stopwordFilter(tokens []string) []string {
 	stopwordsMapping, _ := sw.NewStopwordsMapping()

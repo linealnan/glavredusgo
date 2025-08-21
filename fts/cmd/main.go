@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	tokenizer "github.com/linealnan/glavredusgo/fts/internal"
+	tokenizer "github.com/linealnan/glavredusgo/fts/internal/tokenizer"
 )
 
 // Full-Text Search (FTS)
