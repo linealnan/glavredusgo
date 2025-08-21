@@ -5,10 +5,10 @@ import (
 )
 
 // index is an inverted index. It maps tokens to document IDs.
-type index map[string][]int
+type Index map[string][]int
 
 // document represents a Wikipedia abstract dump document.
-type document struct {
+type Document struct {
 	Title string
 	URL   string
 	Text  string
@@ -16,7 +16,7 @@ type document struct {
 }
 
 // add adds documents to the index.
-func (idx index) add(docs []document) {
+func (idx Index) Add(docs []Document) {
 	for _, doc := range docs {
 		for _, token := range tokenizer.Tokenize(doc.Text) {
 			ids := idx[token]
@@ -53,7 +53,7 @@ func intersection(a []int, b []int) []int {
 }
 
 // search queries the index for the given text.
-func (idx index) search(text string) []int {
+func (idx Index) Search(text string) []int {
 	var r []int
 	for _, token := range tokenizer.Tokenize(text) {
 		if ids, ok := idx[token]; ok {
