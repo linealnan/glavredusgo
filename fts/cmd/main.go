@@ -44,33 +44,15 @@ func main() {
 }
 
 func loadGroupsData(client *vkapi.VKClient) {
+	var documents []index.Document
 	groups := getGroups()
 	log.Printf("Загрузка данных групп\n")
 	for _, group := range groups {
-		getAndIndexedWallPostByGroupName(client, group.Name)
-	}
-}
-
-func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) {
-	var documents []index.Document
-	var document index.Document
-	wall, err := client.WallGet(groupName, 100, nil)
-	if err != nil {
-		log.Fatal(err)
+		document := getAndIndexedWallPostByGroupName(client, group.Name)
+		documents = append(documents, document...)
 	}
 
-	for _, post := range wall.Posts {
-		// log.Printf("Wall post: %v\n", post.Text)
-		document.ID = post.ID
-		document.Text = post.Text
-		document.URL = "https://vk.com/trenchcrusade?w=wall-226198546_" + strconv.Itoa(post.ID)
-
-		documents = append(documents, document)
-	}
-
-	// query := "охотник на ведьм"
-	query := "убивать еретиков"
-	// query := "косплей на ведьму"
+	query := "губернатор"
 
 	start := time.Now()
 	idx := make(index.Index)
@@ -90,10 +72,210 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) 
 	}
 }
 
+func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) []index.Document {
+	var documents []index.Document
+	var document index.Document
+	var groupsName []string
+	wall, err := client.WallGet(groupName, 100, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	groupsName = append(groupsName, groupName)
+	group, err := client.GroupsGetByID(groupsName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, post := range wall.Posts {
+		// log.Printf("Wall post: %v\n", post.Text)
+		document.ID = post.ID
+		document.Text = post.Text
+
+		document.URL = "https://vk.com/" + groupName + "?w=wall-" + strconv.Itoa(group[0].ID) + "_" + strconv.Itoa(post.ID)
+
+		documents = append(documents, document)
+	}
+
+	return documents
+}
+
+// https://vk.com/csridi_geroev
+// Администрация Красносельского района Санкт-Петербурга
+// ГБУ ДО ДДТ КРАСНОСЕЛЬСКОГО РАЙОНА САНКТ-ПЕТЕРБУРГА
+// https://vk.com/ddtks
+// https://vk.com/cbzh_cgpv
+// Администрация Красносельского района Санкт-Петербурга
+// ГБУ ИМЦ КРАСНОСЕЛЬСКОГО РАЙОНА САНКТ-ПЕТЕРБУРГА
+// https://vk.com/imc_krsel
+// Администрация Красносельского района Санкт-Петербурга
+// ГБУ СШ КРАСНОСЕЛЬСКОГО РАЙОНА САНКТ ПЕТЕРБУРГА
+// https://vk.com/shkrsl
+// Администрация Красносельского района Санкт-Петербурга
+// КРАСНОСЕЛЬСКОЕ РЖА https://vk.com/guzhakra
+// Администрация Красносельского района Санкт-Петербурга
+// ОАМ ЦСРИДИ Красносельского района
+// https://vk.com/club88310495
+// Администрация Красносельского района Санкт-Петербурга
+// Отделение ЦСРИДИ г. Красное Cело
+// https://vk.com/club164410468
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУ "КДК "КРАСНОСЕЛЬСКИЙ"
+// https://vk.com/kdk_krasnoselsky
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУ "КЦСОН КРАСНОСЕЛЬСКОГО РАЙОНА"
+// https://vk.com/krasnoselskiy_kcson
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУ "ПМЦ "ЛИГОВО"https://vk.com/pmcligovo
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУ "ЦФКС И З КРАСНОСЕЛЬСКОГО РАЙОНА"
+// https://vk.com/cfksiz
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУ ДО "ДШИ" КРАСНОСЕЛЬСКОГО РАЙОНА
+// https://vk.com/club171353821
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУЗ "ГОРОДСКАЯ ПОЛИКЛИНИКА №106"
+// https://vk.com/gp106
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУЗ "ГОРОДСКАЯ ПОЛИКЛИНИКА №91"
+// https://vk.com/club200827129
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУЗ "ГОРОДСКАЯ ПОЛИКЛИНИКА №93"
+// https://vk.com/club147440843
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУЗ "КВД №6"https://vk.com/club215863666
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУЗ "СТОМАТОЛОГИЧЕСКАЯ ПОЛИКЛИНИКА №28"
+// https://vk.com/club215786855
+// Администрация Красносельского района Санкт-Петербурга
+// СПБ ГБУК"ЦБС КРАСНОСЕЛЬСКОГО РАЙОНА"
+// https://vk.com/cbs_krlib
+// Администрация Красносельского района Санкт-Петербурга
+// ЦПМСС КРАСНОСЕЛЬСКОГО РАЙОНА
+// https://vk.com/krocpmsskr
+
+// https://vk.com/club194809745
+// https://vk.com/club214119048
+// https://vk.com/club202724280
+// https://vk.com/club185982638
+// https://vk.com/club205401563
+// https://vk.com/club205402681
+// https://vk.com/detskisad15
+// https://vk.com/16detskiysad
+// https://vk.com/club205401551
+// https://vk.com/doy19
+// https://vk.com/club109060055
+// https://vk.com/club205401929
+// https://vk.com/club205400972
+// https://vk.com/club182072023
+// https://vk.com/club195576991
+// https://vk.com/club147892228
+// https://vk.com/club187951249
+// https://vk.com/sadik31krs
+// https://vk.com/club205420428
+// https://vk.com/gdboy35
+// https://vk.com/club205443755
+// https://vk.com/dc39spb
+// https://vk.com/club170186955
+// https://vk.com/gbdou41krspb
+// https://vk.com/club216246675
+// https://vk.com/club205406349
+// https://vk.com/club203026295
+// https://vk.com/dc5krs
+// https://vk.com/ds51krs
+// https://vk.com/gbdouds52
+// https://vk.com/club13309436
+// https://vk.com/club192983329
+// https://vk.com/club205417092
+// https://vk.com/club214317110
+// https://vk.com/gbdou6kr
+// https://vk.com/club42266729
+// https://vk.com/club76873688
+// https://vk.com/club202836702
+// https://vk.com/club202821332
+// https://vk.com/ds_65_krs_spb
+// https://vk.com/club205400739
+// https://vk.com/dou69krasnosel
+// https://vk.com/club216939970
+// https://vk.com/club205428969
+// https://vk.com/club205401911
+// https://vk.com/detskiy_sad74
+// https://vk.com/ds75spb
+// https://vk.com/club202011664
+// https://vk.com/club205406444
+// https://vk.com/ds78spb
+// https://vk.com/club129697643
+// https://vk.com/ds80krs
+// https://vk.com/club195029092
+// https://vk.com/club203610472
+// https://vk.com/gbdou83
+// https://vk.com/club203812364
+// https://vk.com/club205421015
+// https://vk.com/club202723926
+// https://vk.com/club215846431
+// https://vk.com/istokdetsad
+// https://vk.com/club194904593
+// https://vk.com/dc9spb
+// https://vk.com/children322029
+// https://vk.com/dou91krasnosel
+// https://vk.com/club205413257
+// https://vk.com/gbdou93krasnosel
+// https://vk.com/gbdou94
+// https://vk.com/gbdou95
+// https://vk.com/club227261708
+// https://vk.com/club183141138
+// https://vk.com/club205420830
+// https://vk.com/club193884037
+// https://vk.com/club214016041
+// https://vk.com/club200294876
+// https://vk.com/68rostok
+// https://vk.com/club205440005
+// https://vk.com/dc50krs_spb
+// https://vk.com/club180362982
+
+// https://vk.com/school509spb
+// https://vk.com/schoolspb54
+// https://vk.com/gym271
+// https://vk.com/gim293spb
+// https://vk.com/spb.school399
+// https://vk.com/club117133342
+// https://vk.com/public220312271
+// https://vk.com/licey_369
+// https://vk.com/licei395
+// https://vk.com/public__590
+// https://vk.com/club23933409
+// https://vk.com/club215520444
+// https://vk.com/school200spb
+// https://vk.com/rr_school208
+// https://vk.com/vr_odod_237
+// https://vk.com/sovet247
+// https://vk.com/school252spb
+// https://vk.com/spbschool262
+// https://vk.com/schooll270
+// https://vk.com/sch276spb
+// https://vk.com/school285spb
+// https://vk.com/g2343
+// https://vk.com/gbou291
+// https://vk.com/school352veteranov151
+// https://vk.com/school382spb
+// https://vk.com/school383
+// https://vk.com/club214266378
+// https://vk.com/spbschool390
+// https://vk.com/spbgboy391
+// https://vk.com/school394spb
+// https://vk.com/school414
+// https://vk.com/newschool546
+// https://vk.com/school547
+
 func getGroups() []MockGroup {
 	return []MockGroup{
-		{Name: "trenchcrusade"},
-		// {Name: "nvp_73"},
-		// {Name: "ad_ka4alka"},
+		{Name: "csridi_geroev"},
+		{Name: "ddtks"},
+		{Name: "imc_krsel"},
+		{Name: "shkrsl"},
+		{Name: "guzhakra"},
+		{Name: "club88310495"},
+		{Name: "kdk_krasnoselsky"},
+		{Name: "krasnoselskiy_kcson"},
+		{Name: "cfksiz"},
+		{Name: "club171353821"},
 	}
 }
