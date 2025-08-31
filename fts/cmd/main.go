@@ -45,7 +45,8 @@ func main() {
 
 func loadGroupsData(client *vkapi.VKClient) {
 	var documents []index.Document
-	groups := getGroups()
+	// groups := getGroups()
+	groups := getSchoolGroups()
 	log.Printf("Загрузка данных групп\n")
 	for _, group := range groups {
 		document := getAndIndexedWallPostByGroupName(client, group.Name)
@@ -64,6 +65,7 @@ func loadGroupsData(client *vkapi.VKClient) {
 	log.Printf("Search found %d documents in %v", len(matchedIDs), time.Since(start))
 
 	for _, id := range matchedIDs {
+		// log.Printf("%d\t", id)
 		for _, doc := range documents {
 			if doc.ID == id {
 				log.Printf("%d\t%s\n", id, doc.URL)
@@ -76,18 +78,25 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) 
 	var documents []index.Document
 	var document index.Document
 	var groupsName []string
-	wall, err := client.WallGet(groupName, 100, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	groupsName = append(groupsName, groupName)
 	group, err := client.GroupsGetByID(groupsName)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	wall, err := client.WallGet(groupName, 100, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for _, post := range wall.Posts {
 		// log.Printf("Wall post: %v\n", post.Text)
-		document.ID = post.ID
+		i, err := strconv.Atoi(strconv.Itoa(group[0].ID) + strconv.Itoa(post.ID))
+		if err != nil {
+			log.Fatal("Error converting string to int:", err)
+		}
+		document.ID = i
 		document.Text = post.Text
 
 		document.URL = "https://vk.com/" + groupName + "?w=wall-" + strconv.Itoa(group[0].ID) + "_" + strconv.Itoa(post.ID)
@@ -95,6 +104,9 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) 
 		documents = append(documents, document)
 	}
 
+	// for _, doc := range documents {
+	// 	log.Printf("%d\t%s\n", doc.ID, doc.URL)
+	// }
 	return documents
 }
 
@@ -151,6 +163,21 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) 
 // Администрация Красносельского района Санкт-Петербурга
 // ЦПМСС КРАСНОСЕЛЬСКОГО РАЙОНА
 // https://vk.com/krocpmsskr
+
+func getGroups() []MockGroup {
+	return []MockGroup{
+		{Name: "csridi_geroev"},
+		{Name: "ddtks"},
+		{Name: "imc_krsel"},
+		{Name: "shkrsl"},
+		{Name: "guzhakra"},
+		{Name: "club88310495"},
+		{Name: "kdk_krasnoselsky"},
+		{Name: "krasnoselskiy_kcson"},
+		{Name: "cfksiz"},
+		{Name: "club171353821"},
+	}
+}
 
 // https://vk.com/club194809745
 // https://vk.com/club214119048
@@ -264,18 +291,17 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) 
 // https://vk.com/school414
 // https://vk.com/newschool546
 // https://vk.com/school547
-
-func getGroups() []MockGroup {
+func getSchoolGroups() []MockGroup {
 	return []MockGroup{
-		{Name: "csridi_geroev"},
-		{Name: "ddtks"},
-		{Name: "imc_krsel"},
-		{Name: "shkrsl"},
-		{Name: "guzhakra"},
-		{Name: "club88310495"},
-		{Name: "kdk_krasnoselsky"},
-		{Name: "krasnoselskiy_kcson"},
-		{Name: "cfksiz"},
-		{Name: "club171353821"},
+		{Name: "club194809745"},
+		{Name: "club214119048"},
+		{Name: "club202724280"},
+		{Name: "club185982638"},
+		{Name: "club205401563"},
+		{Name: "club205402681"},
+		{Name: "detskisad15"},
+		{Name: "16detskiysad"},
+		{Name: "club205401551"},
+		{Name: "doy19"},
 	}
 }
