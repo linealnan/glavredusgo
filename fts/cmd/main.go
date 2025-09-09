@@ -46,14 +46,17 @@ func main() {
 func loadGroupsData(client *vkapi.VKClient) {
 	var documents []index.Document
 	// groups := getGroups()
-	groups := getSchoolGroups()
+	// groups := getSchoolGroups()
+	groups := getFromDecanatGroups()
 	log.Printf("Загрузка данных групп\n")
 	for _, group := range groups {
 		document := getAndIndexedWallPostByGroupName(client, group.Name)
 		documents = append(documents, document...)
 	}
 
-	query := "губернатор"
+	// query := "губернатор"
+	// query := "Звонок из деканата"
+	query := "деканат"
 
 	start := time.Now()
 	idx := make(index.Index)
@@ -295,5 +298,78 @@ func getSchoolGroups() []MockGroup {
 		// https://vk.com/school414
 		// https://vk.com/newschool546
 		// https://vk.com/school547
+	}
+}
+
+// Звонок из «деканата»
+// https://vk.com/school252spb
+// https://vk.com/spbschool262
+// https://vk.com/schooll270
+// https://vk.com/sch276spb
+// https://vk.com/school285spb
+// https://vk.com/g2343
+// https://vk.com/gbou291
+// https://vk.com/school352veteranov151
+// https://vk.com/school382spb
+// https://vk.com/school383
+// https://vk.com/club214266378
+// https://vk.com/spbschool390
+// https://vk.com/spbgboy391
+// https://vk.com/school394spb
+// https://vk.com/school414
+// https://vk.com/newschool546
+// https://vk.com/school547
+
+// https://vk.com/school509spb
+// https://vk.com/schoolspb54
+// https://vk.com/gym271
+// https://vk.com/gim293spb
+// https://vk.com/spb.school399
+// https://vk.com/club117133342
+// https://vk.com/public220312271
+// https://vk.com/licey_369
+// https://vk.com/licei395
+// https://vk.com/public__590
+// https://vk.com/club23933409
+// https://vk.com/club215520444
+// https://vk.com/school200spb
+// https://vk.com/rr_school208
+// https://vk.com/vr_odod_237
+// https://vk.com/sovet247
+func getFromDecanatGroups() []MockGroup {
+	return []MockGroup{
+		{Name: "school252spb"},
+		{Name: "spbschool262"},
+		{Name: "schooll270"},
+		{Name: "sch276spb"},
+		{Name: "school285spb"},
+		{Name: "g2343"},
+		{Name: "gbou291"},
+		{Name: "school352veteranov151"},
+		{Name: "school382spb"},
+		{Name: "school383"},
+		{Name: "club214266378"},
+		{Name: "spbschool390"},
+		{Name: "spbgboy391"},
+		{Name: "school394spb"},
+		{Name: "school414"},
+		{Name: "newschool546"},
+		{Name: "school547"},
+		{Name: "school509spb"},
+		{Name: "schoolspb54"},
+		{Name: "gym271"},
+		{Name: "gim293spb"},
+		{Name: "spb.school399"},
+		{Name: "club117133342"},
+		{Name: "public220312271"},
+		{Name: "licey_369"},
+		{Name: "licei395"},
+		{Name: "public__590"},
+		{Name: "club23933409"},
+		{Name: "club215520444"},
+		{Name: "school200spb"},
+		{Name: "rr_school208"},
+		{Name: "vr_odod_237"},
+		{Name: "sovet247"},
 	}
 }
