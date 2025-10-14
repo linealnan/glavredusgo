@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 	vkapi "github.com/romanraspopov/golang-vk-api"
+	"github.com/urfave/cli/v2"
 )
 
 type IndexData struct {
@@ -29,18 +30,15 @@ type LoadedPost struct {
 type MockGroup struct {
 	Name string
 }
+type VkGroup struct {
+	Name string
+}
 
 func main() {
-	var posts []LoadedPost
+	//var posts []LoadedPost
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
-	}
-
-	token := os.Getenv("VK_API_TOKEN")
-	client, err := vkapi.NewVKClientWithToken(token, nil, true)
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	db, err := sql.Open("sqlite3", "glavredus.db")
@@ -49,7 +47,9 @@ func main() {
 	}
 	defer db.Close()
 
-	posts = loadGroupsData(client, db)
+	deleteVkGroupTable(db)
+	loadInitSchema(db)
+	loadSchoolVkGroups(db)
 
 	indexName := "history.bleve"
 	index, err := bleve.Open(indexName)
@@ -65,14 +65,7 @@ func main() {
 
 		index, err = bleve.NewUsing(indexName, mapping, "upside_down", kvStore, kvConfig)
 	}
-
-	err = index.Index(indexName, posts)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	query := "Пара рисунков"
+	query := "Вчера ребята из группы Цветочки"
 
 	// Создаем Query для совпадений фраз в индексе. Анализатор выбирается по полю. Ввод анализируется этим анализатором. Токенезированные выражения от анализа используются для посторения поисковой фразы. Результирующие документы должны совпадать с этой фразой.
 	mq := bleve.NewMatchPhraseQuery(query)
@@ -92,6 +85,49 @@ func main() {
 	}
 
 	log.Printf("Результат: %v\n", searchResults)
+
+	app := &cli.App{
+		Name:  "glavredus",
+		Usage: "Поиск по группам",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "index",
+				Aliases: []string{"i"},
+				Value:   "force",
+				Usage:   "загрузить данные групп в индекс",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			name := "Гофер"
+			if c.NArg() > 0 {
+				name = c.Args().Get(0)
+			}
+
+			if c.String("i") == "force" {
+
+				token := os.Getenv("VK_API_TOKEN")
+				client, err := vkapi.NewVKClientWithToken(token, nil, true)
+				if err != nil {
+					log.Fatal(err)
+				}
+				posts := loadGroupsData(client, db)
+				err = index.Index(indexName, posts)
+
+				if err != nil {
+					log.Fatal(err)
+				}
+				log.Printf("Индекс обновлен\n")
+
+			} else {
+				fmt.Printf("Hello, %s!\n", name)
+			}
+			return nil
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func buildMapping() *mapping.IndexMappingImpl {
@@ -107,31 +143,10 @@ func buildMapping() *mapping.IndexMappingImpl {
 	return mapping
 }
 
-// func (ss *SearchService) Search(query, channel string) (*bleve.SearchResult, error) {
-// 	stringQuery := fmt.Sprintf("/.*%s.*/", query)
-// 	ss.logger.Info(query)
-// 	ch := bleve.NewTermQuery(channel)
-// 	mq := bleve.NewMatchPhraseQuery(query)
-// 	rq := bleve.NewRegexpQuery(query)
-// 	qsq := bleve.NewQueryStringQuery(stringQuery)
-// 	q := bleve.NewDisjunctionQuery(ch, mq, rq, qsq)
-// 	search := bleve.NewSearchRequest(q)
-// 	search.Fields = []string{"username", "message", "channel", "timestamp"}
-// 	return ss.index.Search(search)
-// }
-
-func getGroups() []MockGroup {
-	return []MockGroup{
-		{Name: "trenchcrusade"},
-		// {Name: "nvp_73"},
-		// {Name: "ad_ka4alka"},
-	}
-}
-
 func loadGroupsData(client *vkapi.VKClient, db *sql.DB) []LoadedPost {
 	var posts []LoadedPost
-	groups := getGroups()
-	log.Printf("Загрузка данных групп\n")
+	groups := getVkGroups(db)
+	log.Printf("Получение данных групп\n")
 	for _, group := range groups {
 		posts = append(posts, getAndIndexedWallPostByGroupName(client, group.Name, db)...)
 	}
@@ -153,29 +168,193 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string, 
 		indexedPost.Text = post.Text
 
 		posts = append(posts, indexedPost)
-		//log.Printf("Wall post: %v\n", post.ID)
-
-		result, err := db.Exec("INSERT OR IGNORE INTO WallPost (id, text) VALUES ($1, $2)",
-			post.ID, post.Text)
-		fmt.Println(post.ID)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(result.LastInsertId()) // id последнего добавленного объекта
-		fmt.Println(result.RowsAffected()) // количество добавленных строк
 	}
 
 	return posts
 }
 
-func initDBSchema(db *sql.DB) {
-	createTableSQL := `
+func deleteVkGroupTable(db *sql.DB) {
+	sql := `DELETE FROM vkgroup;`
+
+	_, err := db.Exec(sql)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func loadInitSchema(db *sql.DB) {
+	createVkgroupSQL := `
 		CREATE TABLE IF NOT EXISTS vkgroup (
-			name string PRIMARY KEY NOT NULL,
+			name string PRIMARY KEY NOT NULL
 		);`
 
-	_, err := db.Exec(createTableSQL)
+	_, err := db.Exec(createVkgroupSQL)
 	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func getVkGroups(db *sql.DB) []VkGroup {
+	rows, err := db.Query(`SELECT name FROM vkgroup;`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer rows.Close()
+	var vkgroups []VkGroup
+
+	// Итерируемся по строкам
+	for rows.Next() {
+		var p VkGroup
+		if err := rows.Scan(&p.Name); err != nil {
+			log.Fatal(err)
+		}
+		vkgroups = append(vkgroups, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return vkgroups
+}
+
+func loadSchoolVkGroups(db *sql.DB) {
+	vkgroups := []VkGroup{
+		{"club194809745"},
+		{"club214119048"},
+		{"club202724280"},
+		{"club185982638"},
+		{"club205401563"},
+		// {Name: "club205402681"},
+		// {Name: "detskisad15"},
+		// {Name: "16detskiysad"},
+		// {Name: "club205401551"},
+		// {Name: "doy19"},
+		// {Name: "club109060055"},
+		// {Name: "club205401929"},
+		// {Name: "club205400972"},
+		// {Name: "club182072023"},
+		// {Name: "club195576991"},
+		// {Name: "club147892228"},
+		// {Name: "club187951249"},
+		// {Name: "sadik31krs"},
+		// {Name: "club205420428"},
+		// {Name: "gdboy35"},
+		// {Name: "club205443755"},
+		// {Name: "dc39spb"},
+		// {Name: "club170186955"},
+		// {Name: "gbdou41krspb"},
+		// {Name: "club216246675"},
+		// {Name: "club205406349"},
+		// {Name: "club203026295"},
+		// {Name: "dc5krs"},
+		// {Name: "ds51krs"},
+		// {Name: "gbdouds52"},
+		// {Name: "club13309436"},
+		// {Name: "club192983329"},
+		// {Name: "club205417092"},
+		// {Name: "club214317110"},
+		// {Name: "gbdou6kr"},
+		// {Name: "club42266729"},
+		// {Name: "club76873688"},
+		// {Name: "club202836702"},
+		// {Name: "club202821332"},
+		// {Name: "ds_65_krs_spb"},
+		// {Name: "club205400739"},
+		// {Name: "dou69krasnosel"},
+		// {Name: "club216939970"},
+		// {Name: "club205428969"},
+		// {Name: "club205401911"},
+		// {Name: "detskiy_sad74"},
+		// {Name: "ds75spb"},
+		// {Name: "club202011664"},
+		// {Name: "club205406444"},
+		// {Name: "ds78spb"},
+		// {Name: "club129697643"},
+		// {Name: "ds80krs"},
+		// {Name: "club195029092"},
+		// {Name: "club203610472"},
+		// {Name: "gbdou83"},
+		// {Name: "club203812364"},
+		// {Name: "club205421015"},
+		// {Name: "club202723926"},
+		// {Name: "club215846431"},
+		// {Name: "istokdetsad"},
+		// {Name: "club194904593"},
+		// {Name: "dc9spb"},
+		// {Name: "children322029"},
+		// {Name: "dou91krasnosel"},
+		// {Name: "club205413257"},
+		// {Name: "gbdou93krasnosel"},
+		// {Name: "gbdou94"},
+		// {Name: "gbdou95"},
+		// https://vk.com/club227261708
+		// https://vk.com/club183141138
+		// https://vk.com/club205420830
+		// https://vk.com/club193884037
+		// https://vk.com/club214016041
+		// https://vk.com/club200294876
+		// https://vk.com/68rostok
+		// https://vk.com/club205440005
+		// https://vk.com/dc50krs_spb
+		// https://vk.com/club180362982
+
+		// https://vk.com/school509spb
+		// https://vk.com/schoolspb54
+		// https://vk.com/gym271
+		// https://vk.com/gim293spb
+		// https://vk.com/spb.school399
+		// https://vk.com/club117133342
+		// https://vk.com/public220312271
+		// https://vk.com/licey_369
+		// https://vk.com/licei395
+		// https://vk.com/public__590
+		// https://vk.com/club23933409
+		// https://vk.com/club215520444
+		// https://vk.com/school200spb
+		// https://vk.com/rr_school208
+		// https://vk.com/vr_odod_237
+		// https://vk.com/sovet247
+		// https://vk.com/school252spb
+		// https://vk.com/spbschool262
+		// https://vk.com/schooll270
+		// https://vk.com/sch276spb
+		// https://vk.com/school285spb
+		// https://vk.com/g2343
+		// https://vk.com/gbou291
+		// https://vk.com/school352veteranov151
+		// https://vk.com/school382spb
+		// https://vk.com/school383
+		// https://vk.com/club214266378
+		// https://vk.com/spbschool390
+		// https://vk.com/spbgboy391
+		// https://vk.com/school394spb
+		// https://vk.com/school414
+		// https://vk.com/newschool546
+		// https://vk.com/school547
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare("INSERT INTO vkgroup (name) VALUES (?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	for _, vkgroup := range vkgroups {
+		if _, err := stmt.Exec(vkgroup.Name); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
 		log.Fatal(err)
 	}
 }

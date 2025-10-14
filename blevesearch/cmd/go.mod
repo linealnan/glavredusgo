@@ -5,8 +5,11 @@ go 1.24.2
 require github.com/blevesearch/bleve v1.0.14
 
 require (
+	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
+	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 )
 
 require (
@@ -30,6 +33,7 @@ require (
 	github.com/romanraspopov/golang-vk-api v0.0.0-20220902131011-b49fc08bdbae
 	github.com/steveyen/gtreap v0.1.0 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
+	github.com/urfave/cli/v2 v2.27.7
 	github.com/willf/bitset v1.1.10 // indirect
 	go.etcd.io/bbolt v1.3.5 // indirect
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
