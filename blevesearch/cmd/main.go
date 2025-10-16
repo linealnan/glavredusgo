@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sync"
+	"strconv"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/lang/ru"
@@ -19,14 +19,17 @@ import (
 )
 
 type IndexData struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
+	ID        string `json:"id"`
+	Text      string `json:"text"`
+	GroupName string `json:"groupName"`
+	GroupID   string `json:"GroupID"`
 }
 
 type LoadedPost struct {
-	// Text string `xml:"abstract"`
-	Text string
-	ID   int
+	ID        string
+	Text      string
+	GroupName string
+	GroupID   string
 }
 
 type MockGroup struct {
@@ -42,13 +45,6 @@ type Service interface {
 	Run() error
 	Name() string
 	Stop()
-}
-
-type GlavredusFinderService struct {
-	services  map[string]Service
-	waitGroup sync.WaitGroup
-
-	logger log.Logger
 }
 
 const indexName string = "history.bleve"
@@ -88,15 +84,6 @@ func main() {
 		}
 	}
 
-	http.HandleFunc("/", formHandler)
-
-	// Запускаем сервер
-	fmt.Println("Starting server at port 8080")
-	err = http.ListenAndServe(":8080", nil)
-	if err != nil {
-		fmt.Println("Error starting the server:", err)
-	}
-
 	app := &cli.App{
 		Name:  "glavredus",
 		Usage: "Поиск по группам",
@@ -109,11 +96,6 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			name := "Значение команды"
-			if c.NArg() > 0 {
-				name = c.Args().Get(0)
-			}
-
 			if c.String("i") == "force" {
 
 				token := os.Getenv("VK_API_TOKEN")
@@ -121,17 +103,25 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				posts := loadGroupsData(client, db)
-				err = index.Index(indexName, posts)
+				log.Printf("Загрузка данных групп\n")
+				loadGroupsData(client, db)
 
 				if err != nil {
 					log.Fatal(err)
 				}
 				log.Printf("Индекс обновлен\n")
 
-			} else {
-				fmt.Printf("Hello, %s\n", name)
 			}
+
+			http.HandleFunc("/", formHandler)
+
+			// Запускаем сервер
+			fmt.Println("Starting server at port 8080")
+			err = http.ListenAndServe(":8080", nil)
+			if err != nil {
+				fmt.Println("Error starting the server:", err)
+			}
+
 			return nil
 		},
 	}
@@ -145,13 +135,16 @@ func search(query string) *bleve.SearchResult {
 	// Создаем Query для совпадений фраз в индексе. Анализатор выбирается по полю. Ввод анализируется этим анализатором. Токенезированные выражения от анализа используются для посторения поисковой фразы. Результирующие документы должны совпадать с этой фразой.
 	mq := bleve.NewMatchPhraseQuery(query)
 	// Создаем Query для поиска значений в индексе по регулярному выражению
-	rq := bleve.NewRegexpQuery(query)
+	// rq := bleve.NewRegexpQuery(query)
 
-	q := bleve.NewDisjunctionQuery(mq, rq)
+	// qsq := bleve.NewQueryStringQuery(query)
+
+	q := bleve.NewDisjunctionQuery(mq)
 
 	searchRequest := bleve.NewSearchRequest(q)
 	searchRequest.Highlight = bleve.NewHighlight()
-	//searchRequest.Fields = []string{"ID"}
+	searchRequest.Fields = []string{"ID", "GroupName", "GroupID", "Text"}
+	// searchRequest.Explain = true
 
 	searchResults, err := index.Search(searchRequest)
 
@@ -183,22 +176,36 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		name := r.FormValue("search")
-		result := search(name)
-		log.Printf("Результат поиска: %s", result)
-		fmt.Fprintf(w, "Результат поиска: %s", result)
+		searchResult := search(name)
+
+		fmt.Printf("Найдено документов: %d\n", searchResult.Total)
+		for _, hit := range searchResult.Hits {
+			fields := hit.Fields
+			fmt.Printf("https://vk.com/%s?w=wall-%s_%s\n", fields["GroupName"], fields["GroupID"], fields["ID"])
+			//fmt.Fprintf(w, "Текст: %s", fields["Text"])
+		}
+
+		// for _, item := range res.Hits {
+		// 	result := item.Fields
+		// 	// log.Printf("Результат поиска: %s", result)
+		// 	fmt.Fprintf(w, "Результат поиска: %d%s", result["ID"], result["Text"])
+		// }
+		//log.Printf("Результат поиска: %s", result)
+		fmt.Fprintf(w, "Результат поиска: %s", searchResult)
 
 	}
 }
 
 func buildMapping() *mapping.IndexMappingImpl {
-	ruFieldMapping := bleve.NewTextFieldMapping()
-	ruFieldMapping.Analyzer = ru.AnalyzerName
 
-	eventMapping := bleve.NewDocumentMapping()
-	eventMapping.AddFieldMappingsAt("Text", ruFieldMapping)
+	// ruFieldMapping := bleve.NewTextFieldMapping()
+	// ruFieldMapping.Analyzer = ru.AnalyzerName
+
+	// eventMapping := bleve.NewDocumentMapping()
+	// eventMapping.AddFieldMappingsAt("Text", ruFieldMapping)
 
 	mapping := bleve.NewIndexMapping()
-	mapping.DefaultMapping = eventMapping
+	//mapping.AddDocumentMapping("vkgoups", eventMapping)
 	mapping.DefaultAnalyzer = ru.AnalyzerName
 	return mapping
 }
@@ -223,11 +230,23 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string, 
 		log.Fatal(err)
 	}
 
-	for _, post := range wall.Posts {
-		indexedPost.ID = post.ID
-		indexedPost.Text = post.Text
+	groupsSlice := []string{groupName}
 
-		posts = append(posts, indexedPost)
+	groups, err := client.GroupsGetByID(groupsSlice)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, post := range wall.Posts {
+		indexedPost.ID = strconv.Itoa(post.ID)
+		indexedPost.Text = post.Text
+		indexedPost.GroupName = groupName
+		indexedPost.GroupID = strconv.Itoa(groups[0].ID)
+
+		err = index.Index(strconv.Itoa(post.ID), indexedPost)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return posts
