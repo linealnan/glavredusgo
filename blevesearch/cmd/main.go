@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"sync"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/lang/ru"
@@ -34,8 +36,26 @@ type VkGroup struct {
 	Name string
 }
 
+// Service interface is base service, with simple API
+type Service interface {
+	Init() error
+	Run() error
+	Name() string
+	Stop()
+}
+
+type GlavredusFinderService struct {
+	services  map[string]Service
+	waitGroup sync.WaitGroup
+
+	logger log.Logger
+}
+
+const indexName string = "history.bleve"
+
+var index bleve.Index
+
 func main() {
-	//var posts []LoadedPost
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -51,8 +71,7 @@ func main() {
 	loadInitSchema(db)
 	loadSchoolVkGroups(db)
 
-	indexName := "history.bleve"
-	index, err := bleve.Open(indexName)
+	index, err = bleve.Open(indexName)
 	if err == bleve.ErrorIndexPathDoesNotExist {
 		mapping := buildMapping()
 		kvStore := goleveldb.Name
@@ -64,27 +83,19 @@ func main() {
 		}
 
 		index, err = bleve.NewUsing(indexName, mapping, "upside_down", kvStore, kvConfig)
+		if err != nil {
+			fmt.Println("Error starting the server:", err)
+		}
 	}
-	query := "Вчера ребята из группы Цветочки"
 
-	// Создаем Query для совпадений фраз в индексе. Анализатор выбирается по полю. Ввод анализируется этим анализатором. Токенезированные выражения от анализа используются для посторения поисковой фразы. Результирующие документы должны совпадать с этой фразой.
-	mq := bleve.NewMatchPhraseQuery(query)
-	// Создаем Query для поиска значений в индексе по регулярному выражению
-	rq := bleve.NewRegexpQuery(query)
+	http.HandleFunc("/", formHandler)
 
-	q := bleve.NewDisjunctionQuery(mq, rq)
-
-	searchRequest := bleve.NewSearchRequest(q)
-	searchRequest.Highlight = bleve.NewHighlight()
-	//searchRequest.Fields = []string{"ID"}
-
-	searchResults, err := index.Search(searchRequest)
-
+	// Запускаем сервер
+	fmt.Println("Starting server at port 8080")
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error starting the server:", err)
 	}
-
-	log.Printf("Результат: %v\n", searchResults)
 
 	app := &cli.App{
 		Name:  "glavredus",
@@ -93,12 +104,12 @@ func main() {
 			&cli.StringFlag{
 				Name:    "index",
 				Aliases: []string{"i"},
-				Value:   "force",
+				Value:   "",
 				Usage:   "загрузить данные групп в индекс",
 			},
 		},
 		Action: func(c *cli.Context) error {
-			name := "Гофер"
+			name := "Значение команды"
 			if c.NArg() > 0 {
 				name = c.Args().Get(0)
 			}
@@ -119,7 +130,7 @@ func main() {
 				log.Printf("Индекс обновлен\n")
 
 			} else {
-				fmt.Printf("Hello, %s!\n", name)
+				fmt.Printf("Hello, %s\n", name)
 			}
 			return nil
 		},
@@ -127,6 +138,55 @@ func main() {
 
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func search(query string) *bleve.SearchResult {
+	// Создаем Query для совпадений фраз в индексе. Анализатор выбирается по полю. Ввод анализируется этим анализатором. Токенезированные выражения от анализа используются для посторения поисковой фразы. Результирующие документы должны совпадать с этой фразой.
+	mq := bleve.NewMatchPhraseQuery(query)
+	// Создаем Query для поиска значений в индексе по регулярному выражению
+	rq := bleve.NewRegexpQuery(query)
+
+	q := bleve.NewDisjunctionQuery(mq, rq)
+
+	searchRequest := bleve.NewSearchRequest(q)
+	searchRequest.Highlight = bleve.NewHighlight()
+	//searchRequest.Fields = []string{"ID"}
+
+	searchResults, err := index.Search(searchRequest)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return searchResults
+}
+
+func formHandler(w http.ResponseWriter, r *http.Request) {
+	// Проверяем метод запроса
+	if r.Method == http.MethodGet {
+		// Отображаем форму
+		fmt.Fprintf(w, `
+			<html>
+				<form method="POST">
+					<input type="text" name="search" placeholder="Введите текст">
+					<button type="submit">Найти</button>
+				</form>
+			</html
+        `)
+	} else if r.Method == http.MethodPost {
+		// Обрабатываем данные формы
+		err := r.ParseForm()
+		if err != nil {
+			fmt.Fprintf(w, "Error parsing form: %v", err)
+			return
+		}
+
+		name := r.FormValue("search")
+		result := search(name)
+		log.Printf("Результат поиска: %s", result)
+		fmt.Fprintf(w, "Результат поиска: %s", result)
+
 	}
 }
 
@@ -226,13 +286,13 @@ func loadSchoolVkGroups(db *sql.DB) {
 		{"club202724280"},
 		{"club185982638"},
 		{"club205401563"},
-		// {Name: "club205402681"},
-		// {Name: "detskisad15"},
-		// {Name: "16detskiysad"},
-		// {Name: "club205401551"},
-		// {Name: "doy19"},
-		// {Name: "club109060055"},
-		// {Name: "club205401929"},
+		{"club205402681"},
+		{"detskisad15"},
+		{"16detskiysad"},
+		{"club205401551"},
+		{"doy19"},
+		{"club109060055"},
+		{"club205401929"},
 		// {Name: "club205400972"},
 		// {Name: "club182072023"},
 		// {Name: "club195576991"},
