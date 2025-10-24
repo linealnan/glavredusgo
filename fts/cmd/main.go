@@ -46,8 +46,8 @@ func main() {
 func loadGroupsData(client *vkapi.VKClient) {
 	var documents []index.Document
 	// groups := getGroups()
-	// groups := getSchoolGroups()
-	groups := getFromDecanatGroups()
+	groups := getSchoolGroups()
+	// groups := getFromKidsGardenGroups()
 	log.Printf("Загрузка данных групп\n")
 	for _, group := range groups {
 		document := getAndIndexedWallPostByGroupName(client, group.Name)
@@ -56,7 +56,8 @@ func loadGroupsData(client *vkapi.VKClient) {
 
 	// query := "губернатор"
 	// query := "Звонок из деканата"
-	query := "деканат"
+	query := "поручение"
+	// query := "эйфория"
 
 	start := time.Now()
 	idx := make(index.Index)
@@ -234,7 +235,7 @@ func getSchoolGroups() []MockGroup {
 		{Name: "club202011664"},
 		{Name: "club205406444"},
 		{Name: "ds78spb"},
-		// {Name: "club129697643"},
+		{Name: "club129697643"},
 		// {Name: "ds80krs"},
 		// {Name: "club195029092"},
 		// {Name: "club203610472"},
@@ -252,8 +253,6 @@ func getSchoolGroups() []MockGroup {
 		// {Name: "gbdou93krasnosel"},
 		// {Name: "gbdou94"},
 		// {Name: "gbdou95"},
-
-		// https://vk.com/gbdou95
 		// https://vk.com/club227261708
 		// https://vk.com/club183141138
 		// https://vk.com/club205420830
@@ -371,5 +370,128 @@ func getFromDecanatGroups() []MockGroup {
 		{Name: "rr_school208"},
 		{Name: "vr_odod_237"},
 		{Name: "sovet247"},
+	}
+}
+
+// Сады
+// https://vk.com/club194809745
+// https://vk.com/club214119048
+// https://vk.com/club202724280
+// https://vk.com/club185982638
+// https://vk.com/club205401563
+// https://vk.com/club205402681
+// https://vk.com/detskisad15
+// https://vk.com/16detskiysad
+// https://vk.com/club205401551
+// https://vk.com/doy19
+// https://vk.com/club109060055
+// https://vk.com/club205401929
+// https://vk.com/club205400972
+// https://vk.com/club182072023
+// https://vk.com/club195576991
+// https://vk.com/club147892228
+// https://vk.com/club187951249
+// https://vk.com/sadik31krs
+// https://vk.com/club205420428
+// https://vk.com/gdboy35
+// https://vk.com/club205443755
+// https://vk.com/dc39spb
+// https://vk.com/club170186955
+// https://vk.com/gbdou41krspb
+// https://vk.com/club216246675
+// https://vk.com/club205406349
+// https://vk.com/club203026295
+// https://vk.com/dc5krs
+// https://vk.com/ds51krs
+// https://vk.com/gbdouds52
+// https://vk.com/club13309436
+// https://vk.com/club192983329
+// https://vk.com/club205417092
+// https://vk.com/club214317110
+// https://vk.com/gbdou6kr
+// https://vk.com/club42266729
+// https://vk.com/club76873688
+// https://vk.com/club202836702
+// https://vk.com/club202821332
+// https://vk.com/ds_65_krs_spb
+// https://vk.com/club205400739
+// https://vk.com/dou69krasnosel
+// https://vk.com/club216939970
+// https://vk.com/club205428969
+// https://vk.com/club205401911
+// https://vk.com/detskiy_sad74
+// https://vk.com/ds75spb
+// https://vk.com/club202011664
+// https://vk.com/club205406444
+// https://vk.com/ds78spb
+// https://vk.com/club129697643
+// https://vk.com/ds80krs
+// https://vk.com/club195029092
+// https://vk.com/club203610472
+// https://vk.com/gbdou83
+// https://vk.com/club203812364
+// https://vk.com/club205421015
+// https://vk.com/club202723926
+// https://vk.com/club215846431
+// https://vk.com/istokdetsad
+// https://vk.com/club194904593
+// https://vk.com/dc9spb
+// https://vk.com/children322029
+// https://vk.com/dou91krasnosel
+// https://vk.com/club205413257
+// https://vk.com/gbdou93krasnosel
+// https://vk.com/gbdou94
+// https://vk.com/gbdou95
+// https://vk.com/club227261708
+// https://vk.com/club183141138
+// https://vk.com/club205420830
+// https://vk.com/club193884037
+// https://vk.com/club214016041
+// https://vk.com/club200294876
+// https://vk.com/68rostok
+// https://vk.com/club205440005
+// https://vk.com/dc50krs_spb
+// https://vk.com/club180362982
+
+func getFromKidsGardenGroups() []MockGroup {
+	return []MockGroup{
+		{Name: "club194809745"},
+		{Name: "club214119048"},
+		{Name: "club202724280"},
+		{Name: "club185982638"},
+		{Name: "club205401563"},
+		{Name: "club205402681"},
+		{Name: "detskisad15"},
+		{Name: "16detskiysad"},
+		{Name: "club205401551"},
+		{Name: "doy19"},
+		{Name: "club109060055"},
+		{Name: "club205401929"},
+		{Name: "club205400972"},
+		{Name: "club182072023"},
+		{Name: "club195576991"},
+		{Name: "club147892228"},
+		{Name: "club187951249"},
+		{Name: "sadik31krs"},
+		{Name: "club205420428"},
+		{Name: "gdboy35"},
+		{Name: "club205443755"},
+		{Name: "dc39spb"},
+		{Name: "club170186955"},
+		{Name: "gbdou41krspb"},
+		{Name: "club216246675"},
+		{Name: "club205406349"},
+		{Name: "club203026295"},
+		{Name: "dc5krs"},
+		{Name: "ds51krs"},
+		{Name: "gbdouds52"},
+		{Name: "club13309436"},
+		{Name: "club192983329"},
+		{Name: "club205417092"},
+		{Name: "club214317110"},
+		{Name: "gbdou6kr"},
+		{Name: "club42266729"},
+		{Name: "club76873688"},
+		{Name: "club202836702"},
 	}
 }

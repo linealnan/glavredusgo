@@ -181,8 +181,10 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Найдено документов: %d\n", searchResult.Total)
 		for _, hit := range searchResult.Hits {
 			fields := hit.Fields
-			fmt.Printf("https://vk.com/%s?w=wall-%s_%s\n", fields["GroupName"], fields["GroupID"], fields["ID"])
-			//fmt.Fprintf(w, "Текст: %s", fields["Text"])
+			// fmt.Printf("https://vk.com/%s?w=wall-%s_%s\n", fields["GroupName"], fields["GroupID"], fields["ID"])
+			// fmt.Printf("Текст: %s", fields["Text"])
+			// fmt.Fprintf(w, "Текст: %s", fields["Text"])
+			fmt.Fprintf(w, "https://vk.com/%s?w=wall-%s_%s\n", fields["GroupName"], fields["GroupID"], fields["ID"])
 		}
 
 		// for _, item := range res.Hits {
@@ -312,25 +314,25 @@ func loadSchoolVkGroups(db *sql.DB) {
 		{"doy19"},
 		{"club109060055"},
 		{"club205401929"},
-		// {Name: "club205400972"},
-		// {Name: "club182072023"},
-		// {Name: "club195576991"},
-		// {Name: "club147892228"},
-		// {Name: "club187951249"},
-		// {Name: "sadik31krs"},
-		// {Name: "club205420428"},
-		// {Name: "gdboy35"},
-		// {Name: "club205443755"},
-		// {Name: "dc39spb"},
-		// {Name: "club170186955"},
-		// {Name: "gbdou41krspb"},
-		// {Name: "club216246675"},
-		// {Name: "club205406349"},
-		// {Name: "club203026295"},
-		// {Name: "dc5krs"},
-		// {Name: "ds51krs"},
-		// {Name: "gbdouds52"},
-		// {Name: "club13309436"},
+		{"club205400972"},
+		{"club182072023"},
+		{"club195576991"},
+		{"club147892228"},
+		{"club187951249"},
+		{"sadik31krs"},
+		{"club205420428"},
+		{"gdboy35"},
+		{"club205443755"},
+		{"dc39spb"},
+		{"club170186955"},
+		{"gbdou41krspb"},
+		{"club216246675"},
+		{"club205406349"},
+		{"club203026295"},
+		{"dc5krs"},
+		{"ds51krs"},
+		{"gbdouds52"},
+		{"club13309436"},
 		// {Name: "club192983329"},
 		// {Name: "club205417092"},
 		// {Name: "club214317110"},
