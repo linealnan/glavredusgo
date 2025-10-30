@@ -227,6 +227,7 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string, 
 	var posts []LoadedPost
 	var indexedPost LoadedPost
 
+	log.Printf("Получение постов группы %s\n", groupName)
 	wall, err := client.WallGet(groupName, 100, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -333,87 +334,85 @@ func loadSchoolVkGroups(db *sql.DB) {
 		{"ds51krs"},
 		{"gbdouds52"},
 		{"club13309436"},
-		// {Name: "club192983329"},
-		// {Name: "club205417092"},
-		// {Name: "club214317110"},
-		// {Name: "gbdou6kr"},
-		// {Name: "club42266729"},
-		// {Name: "club76873688"},
-		// {Name: "club202836702"},
-		// {Name: "club202821332"},
-		// {Name: "ds_65_krs_spb"},
-		// {Name: "club205400739"},
-		// {Name: "dou69krasnosel"},
-		// {Name: "club216939970"},
-		// {Name: "club205428969"},
-		// {Name: "club205401911"},
-		// {Name: "detskiy_sad74"},
-		// {Name: "ds75spb"},
-		// {Name: "club202011664"},
-		// {Name: "club205406444"},
-		// {Name: "ds78spb"},
-		// {Name: "club129697643"},
-		// {Name: "ds80krs"},
-		// {Name: "club195029092"},
-		// {Name: "club203610472"},
-		// {Name: "gbdou83"},
-		// {Name: "club203812364"},
-		// {Name: "club205421015"},
-		// {Name: "club202723926"},
-		// {Name: "club215846431"},
-		// {Name: "istokdetsad"},
-		// {Name: "club194904593"},
-		// {Name: "dc9spb"},
-		// {Name: "children322029"},
-		// {Name: "dou91krasnosel"},
-		// {Name: "club205413257"},
-		// {Name: "gbdou93krasnosel"},
-		// {Name: "gbdou94"},
-		// {Name: "gbdou95"},
-		// https://vk.com/club227261708
-		// https://vk.com/club183141138
-		// https://vk.com/club205420830
-		// https://vk.com/club193884037
-		// https://vk.com/club214016041
-		// https://vk.com/club200294876
-		// https://vk.com/68rostok
-		// https://vk.com/club205440005
-		// https://vk.com/dc50krs_spb
-		// https://vk.com/club180362982
-
-		// https://vk.com/school509spb
-		// https://vk.com/schoolspb54
-		// https://vk.com/gym271
-		// https://vk.com/gim293spb
-		// https://vk.com/spb.school399
-		// https://vk.com/club117133342
-		// https://vk.com/public220312271
-		// https://vk.com/licey_369
-		// https://vk.com/licei395
-		// https://vk.com/public__590
-		// https://vk.com/club23933409
-		// https://vk.com/club215520444
-		// https://vk.com/school200spb
-		// https://vk.com/rr_school208
-		// https://vk.com/vr_odod_237
-		// https://vk.com/sovet247
-		// https://vk.com/school252spb
-		// https://vk.com/spbschool262
-		// https://vk.com/schooll270
-		// https://vk.com/sch276spb
-		// https://vk.com/school285spb
-		// https://vk.com/g2343
-		// https://vk.com/gbou291
-		// https://vk.com/school352veteranov151
-		// https://vk.com/school382spb
-		// https://vk.com/school383
-		// https://vk.com/club214266378
-		// https://vk.com/spbschool390
-		// https://vk.com/spbgboy391
-		// https://vk.com/school394spb
-		// https://vk.com/school414
-		// https://vk.com/newschool546
-		// https://vk.com/school547
+		{"club192983329"},
+		{"club205417092"},
+		{"club214317110"},
+		{"gbdou6kr"},
+		{"club42266729"},
+		{"club76873688"},
+		{"club202836702"},
+		{"club202821332"},
+		{"ds_65_krs_spb"},
+		{"club205400739"},
+		{"dou69krasnosel"},
+		{"club216939970"},
+		{"club205428969"},
+		{"club205401911"},
+		{"detskiy_sad74"},
+		{"ds75spb"},
+		{"club202011664"},
+		{"club205406444"},
+		{"ds78spb"},
+		{"club129697643"},
+		{"ds80krs"},
+		{"club195029092"},
+		{"club203610472"},
+		{"gbdou83"},
+		{"club203812364"},
+		{"club205421015"},
+		{"club202723926"},
+		{"club215846431"},
+		// {"istokdetsad"},
+		// {"club194904593"},
+		{"dc9spb"},
+		{"children322029"},
+		{"dou91krasnosel"},
+		{"club205413257"},
+		{"gbdou93krasnosel"},
+		{"gbdou94"},
+		{"club227261708"},
+		{"club183141138"},
+		{"club205420830"},
+		{"club193884037"},
+		{"club214016041"},
+		{"club200294876"},
+		{"68rostok"},
+		{"club205440005"},
+		{"dc50krs_spb"},
+		{"club180362982"},
+		{"school509spb"},
+		{"schoolspb54"},
+		{"gym271"},
+		{"gim293spb"},
+		{"spb.school399"},
+		{"club117133342"},
+		{"public220312271"},
+		{"licey_369"},
+		{"licei395"},
+		{"public__590"},
+		{"club23933409"},
+		{"club215520444"},
+		{"school200spb"},
+		{"rr_school208"},
+		{"vr_odod_237"},
+		{"sovet247"},
+		{"school252spb"},
+		{"spbschool262"},
+		{"schooll270"},
+		{"sch276spb"},
+		{"school285spb"},
+		{"g2343"},
+		{"gbou291"},
+		{"school352veteranov151"},
+		{"school382spb"},
+		{"school383"},
+		{"club214266378"},
+		{"spbschool390"},
+		{"spbgboy391"},
+		{"school394spb"},
+		{"school414"},
+		{"newschool546"},
+		{"school547"},
 	}
 
 	tx, err := db.Begin()
