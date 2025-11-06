@@ -1,0 +1,24 @@
+package internal
+
+import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
+
+type AppConfig struct {
+	VkApiToken string
+}
+
+func InitByDotEnv() *AppConfig {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	conf := new(AppConfig)
+	conf.VkApiToken = os.Getenv("VK_API_TOKEN")
+
+	return conf
+}

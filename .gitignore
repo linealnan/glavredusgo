@@ -6,3 +6,4 @@ go.work.sum
 .env
 blevesearch/cmd/history.bleve/store/*
 blevesearch/cmd/glavredus.db
+release/*
