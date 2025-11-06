@@ -4,5 +4,5 @@ go.work.sum
 
 # env file
 .env
-blevesearch/cmd/history.bleve/store/
+blevesearch/cmd/history.bleve/store/*
 blevesearch/cmd/glavredus.db
