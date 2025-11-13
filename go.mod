@@ -1,15 +1,13 @@
-module github.com/linealnan/glavredusgo/blevesearch
+module github.com/linealnan/glavredusgo
 
 go 1.24.2
 
-require github.com/blevesearch/bleve v1.0.14
-
 require (
-	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
-	github.com/mattn/go-sqlite3 v1.14.32 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/syndtr/goleveldb v1.0.0 // indirect
-	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
+	github.com/blevesearch/bleve v1.0.14
+	github.com/joho/godotenv v1.5.1
+	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/romanraspopov/golang-vk-api v0.0.0-20220902131011-b49fc08bdbae
+	github.com/urfave/cli/v2 v2.27.7
 )
 
 require (
@@ -24,17 +22,18 @@ require (
 	github.com/blevesearch/zap/v14 v14.0.5 // indirect
 	github.com/blevesearch/zap/v15 v15.0.3 // indirect
 	github.com/couchbase/vellum v1.0.2 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/joho/godotenv v1.5.1
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
-	github.com/romanraspopov/golang-vk-api v0.0.0-20220902131011-b49fc08bdbae
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/steveyen/gtreap v0.1.0 // indirect
+	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
-	github.com/urfave/cli/v2 v2.27.7
 	github.com/willf/bitset v1.1.10 // indirect
+	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	go.etcd.io/bbolt v1.3.5 // indirect
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 )
