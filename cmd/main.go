@@ -12,7 +12,7 @@ import (
 	"github.com/blevesearch/bleve/analysis/lang/ru"
 	"github.com/blevesearch/bleve/index/store/goleveldb"
 	"github.com/blevesearch/bleve/mapping"
-	"github.com/joho/godotenv"
+	conf "github.com/linealnan/glavredusgo/internal"
 	_ "github.com/mattn/go-sqlite3"
 	vkapi "github.com/romanraspopov/golang-vk-api"
 	"github.com/urfave/cli/v2"
@@ -39,23 +39,15 @@ type VkGroup struct {
 	Name string
 }
 
-// Service interface is base service, with simple API
-type Service interface {
-	Init() error
-	Run() error
-	Name() string
-	Stop()
-}
-
 const indexName string = "history.bleve"
 
 var index bleve.Index
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
 	db, err := sql.Open("sqlite3", "glavredus.db")
 	if err != nil {
@@ -83,6 +75,8 @@ func main() {
 			fmt.Println("Error starting the server:", err)
 		}
 	}
+
+	config := conf.InitWithDotEnv()
 
 	app := &cli.App{
 		Name:  "glavredus",
@@ -116,13 +110,13 @@ func main() {
 			http.HandleFunc("/", formHandler)
 
 			// Запускаем сервер
-			fmt.Println("Starting server at port 8080")
+			log.Printf("Starting server at port 8080")
 			err = http.ListenAndServe(":8080", nil)
 			if err != nil {
-				fmt.Println("Error starting the server:", err)
+				log.Println("Error starting the server:", err)
 			}
 
-			return nil
+			vkindexer
 		},
 	}
 

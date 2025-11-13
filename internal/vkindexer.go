@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/index"
 	vkapi "github.com/romanraspopov/golang-vk-api"
 )
 
@@ -30,7 +29,8 @@ type VkGroup struct {
 	Name string
 }
 
-func (vi *VkIndexer) Init(conf *AppConfig, db *sql.DB) error {
+func (vi *VkIndexer) Init(conf *AppConfig, db *sql.DB, index bleve.Index) error {
+	vi.bleveIndex = index
 	token := conf.VkApiToken
 	client, err := vkapi.NewVKClientWithToken(token, nil, true)
 	if err != nil {
@@ -46,7 +46,7 @@ func (vi *VkIndexer) Run() error {
 	groups := getVkGroups(vi.db)
 	log.Printf("Получение данных групп\n")
 	for _, group := range groups {
-		getAndIndexedWallPostByGroupName(vi.client, group.Name)
+		getAndIndexedWallPostByGroupName(vi.client, group.Name, vi.bleveIndex)
 	}
 
 	return nil
@@ -81,7 +81,7 @@ func getVkGroups(db *sql.DB) []VkGroup {
 	return vkgroups
 }
 
-func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string) {
+func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string, index bleve.Index) {
 	var indexedPost LoadedPost
 
 	log.Printf("Получение постов группы %s\n", groupName)

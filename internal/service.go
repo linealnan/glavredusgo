@@ -1,7 +1,10 @@
 package internal
 
 import (
+	"database/sql"
 	"sync/atomic"
+
+	"github.com/blevesearch/bleve"
 )
 
 const (
@@ -12,7 +15,7 @@ const (
 )
 
 type Service interface {
-	Init() error
+	Init(conf *AppConfig, db *sql.DB, index bleve.Index) error
 	Run() error
 	Name() string
 	Stop()
