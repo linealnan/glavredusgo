@@ -256,7 +256,7 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string, 
 }
 
 func deleteVkGroupTable(db *sql.DB) {
-	sql := `DELETE FROM vkgroup;`
+	sql := `DROP TABLE IF EXISTS vkgroup;`
 
 	_, err := db.Exec(sql)
 	if err != nil {
