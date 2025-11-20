@@ -144,7 +144,7 @@ func search(query string) *bleve.SearchResult {
 	searchRequest := bleve.NewSearchRequest(q)
 	searchRequest.Highlight = bleve.NewHighlight()
 	searchRequest.Fields = []string{"ID", "GroupName", "GroupID", "Text"}
-	// searchRequest.Explain = true
+	searchRequest.Size = 100
 
 	searchResults, err := index.Search(searchRequest)
 

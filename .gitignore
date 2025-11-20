@@ -4,3 +4,4 @@ go.work.sum
 
 # env file
 .env
+blevesearch/cmd/history.bleve/*
