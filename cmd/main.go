@@ -9,13 +9,16 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/analysis/lang/ru"
-	"github.com/blevesearch/bleve/index/store/goleveldb"
-	"github.com/blevesearch/bleve/mapping"
-	conf "github.com/linealnan/glavredusgo/internal"
+	"github.com/linealnan/glavredusgo/internal/application"
+	bleveindex "github.com/linealnan/glavredusgo/internal/bleveindex"
+	conf "github.com/linealnan/glavredusgo/internal/config"
+	db "github.com/linealnan/glavredusgo/internal/db"
+	"github.com/linealnan/glavredusgo/internal/vkclient"
+	"github.com/linealnan/glavredusgo/internal/vkindexer"
 	_ "github.com/mattn/go-sqlite3"
 	vkapi "github.com/romanraspopov/golang-vk-api"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/dig"
 )
 
 type IndexData struct {
@@ -39,8 +42,6 @@ type VkGroup struct {
 	Name string
 }
 
-const indexName string = "history.bleve"
-
 var index bleve.Index
 
 func main() {
@@ -49,34 +50,41 @@ func main() {
 	// 	log.Fatal("Error loading .env file")
 	// }
 
-	db, err := sql.Open("sqlite3", "glavredus.db")
-	if err != nil {
+	// db, err := sql.Open("sqlite3", "glavredus.db")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer db.Close()
+
+	// deleteVkGroupTable(db)
+	// loadInitSchema(db)
+	// loadSchoolVkGroups(db)
+
+	container := dig.New()
+
+	if err := container.Provide(conf.InitWithDotEnv); err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
-	deleteVkGroupTable(db)
-	loadInitSchema(db)
-	loadSchoolVkGroups(db)
-
-	index, err = bleve.Open(indexName)
-	if err == bleve.ErrorIndexPathDoesNotExist {
-		mapping := buildMapping()
-		kvStore := goleveldb.Name
-		kvConfig := map[string]interface{}{
-			"create_if_missing": true,
-			//		"write_buffer_size":         536870912,
-			//		"lru_cache_capacity":        536870912,
-			//		"bloom_filter_bits_per_key": 10,
-		}
-
-		index, err = bleve.NewUsing(indexName, mapping, "upside_down", kvStore, kvConfig)
-		if err != nil {
-			fmt.Println("Error starting the server:", err)
-		}
+	if err := container.Provide(bleveindex.NewBleveIndex); err != nil {
+		panic(err)
 	}
 
-	config := conf.InitWithDotEnv()
+	if err := container.Provide(vkclient.NewVkClient); err != nil {
+		panic(err)
+	}
+
+	if err := container.Provide(db.NewDbConnection); err != nil {
+		panic(err)
+	}
+
+	if err := container.Provide(vkindexer.NewVkIndexer); err != nil {
+		panic(err)
+	}
+
+	if err := container.Provide(application.NewApplication); err != nil {
+		panic(err)
+	}
 
 	app := &cli.App{
 		Name:  "glavredus",
@@ -90,33 +98,40 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			if c.String("i") == "force" {
+			// if c.String("i") == "force" {
 
-				token := os.Getenv("VK_API_TOKEN")
-				client, err := vkapi.NewVKClientWithToken(token, nil, true)
-				if err != nil {
-					log.Fatal(err)
-				}
-				log.Printf("Загрузка данных групп\n")
-				loadGroupsData(client, db)
+			// 	token := os.Getenv("VK_API_TOKEN")
+			// 	client, err := vkapi.NewVKClientWithToken(token, nil, true)
+			// 	if err != nil {
+			// 		log.Fatal(err)
+			// 	}
+			// 	log.Printf("Загрузка данных групп\n")
+			// 	loadGroupsData(client, db)
 
-				if err != nil {
-					log.Fatal(err)
-				}
-				log.Printf("Индекс обновлен\n")
+			// 	if err != nil {
+			// 		log.Fatal(err)
+			// 	}
+			// 	log.Printf("Индекс обновлен\n")
 
+			// }
+
+			// 3. Запускаем основную функцию приложения с помощью метода Invoke.
+			// Dig автоматически разрешает зависимости и вызывает переданную функцию с готовыми экземплярами.
+			if err := container.Invoke(func(app *application.Application) {
+				app.Run()
+			}); err != nil {
+				panic(err)
 			}
 
 			http.HandleFunc("/", formHandler)
 
 			// Запускаем сервер
 			log.Printf("Starting server at port 8080")
-			err = http.ListenAndServe(":8080", nil)
+			err := http.ListenAndServe(":8080", nil)
 			if err != nil {
 				log.Println("Error starting the server:", err)
 			}
-
-			vkindexer
+			return nil
 		},
 	}
 
@@ -190,20 +205,6 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Результат поиска: %s", searchResult)
 
 	}
-}
-
-func buildMapping() *mapping.IndexMappingImpl {
-
-	// ruFieldMapping := bleve.NewTextFieldMapping()
-	// ruFieldMapping.Analyzer = ru.AnalyzerName
-
-	// eventMapping := bleve.NewDocumentMapping()
-	// eventMapping.AddFieldMappingsAt("Text", ruFieldMapping)
-
-	mapping := bleve.NewIndexMapping()
-	//mapping.AddDocumentMapping("vkgoups", eventMapping)
-	mapping.DefaultAnalyzer = ru.AnalyzerName
-	return mapping
 }
 
 func loadGroupsData(client *vkapi.VKClient, db *sql.DB) []LoadedPost {

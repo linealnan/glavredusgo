@@ -7,3 +7,5 @@ go.work.sum
 blevesearch/cmd/history.bleve/*
 release/*
 blevesearch/cmd/glavredus.db
+cmd/history.bleve/store/*
+cmd/glavredus.db

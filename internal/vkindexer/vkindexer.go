@@ -1,4 +1,4 @@
-package internal
+package vkindexer
 
 import (
 	"database/sql"
@@ -6,13 +6,12 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/bleve"
+	conf "github.com/linealnan/glavredusgo/internal/config"
 	vkapi "github.com/romanraspopov/golang-vk-api"
 )
 
 type VkIndexer struct {
-	BaseService
-	services   map[string]Service
-	config     *AppConfig
+	conf       *conf.AppConfig
 	bleveIndex bleve.Index
 	client     *vkapi.VKClient
 	db         *sql.DB
@@ -29,20 +28,11 @@ type VkGroup struct {
 	Name string
 }
 
-func (vi *VkIndexer) Init(conf *AppConfig, db *sql.DB, index bleve.Index) error {
-	vi.bleveIndex = index
-	token := conf.VkApiToken
-	client, err := vkapi.NewVKClientWithToken(token, nil, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	vi.client = client
-	vi.db = db
-
-	return nil
+func NewVkIndexer(c *conf.AppConfig, index bleve.Index, client *vkapi.VKClient, db *sql.DB) *VkIndexer {
+	return &VkIndexer{conf: c, bleveIndex: index, client: client, db: db}
 }
 
-func (vi *VkIndexer) Run() error {
+func (vi *VkIndexer) GetAndIndexedPosts() error {
 	groups := getVkGroups(vi.db)
 	log.Printf("Получение данных групп\n")
 	for _, group := range groups {
@@ -50,10 +40,6 @@ func (vi *VkIndexer) Run() error {
 	}
 
 	return nil
-}
-
-func (vi *VkIndexer) Name() string {
-	return "vk-indexer"
 }
 
 func getVkGroups(db *sql.DB) []VkGroup {
