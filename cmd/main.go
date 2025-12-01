@@ -119,6 +119,7 @@ func main() {
 			// Dig автоматически разрешает зависимости и вызывает переданную функцию с готовыми экземплярами.
 			if err := container.Invoke(func(app *application.Application) {
 				app.Run()
+
 			}); err != nil {
 				panic(err)
 			}
@@ -248,27 +249,6 @@ func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string, 
 	}
 
 	return posts
-}
-
-func deleteVkGroupTable(db *sql.DB) {
-	sql := `DROP TABLE IF EXISTS vkgroup;`
-
-	_, err := db.Exec(sql)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func loadInitSchema(db *sql.DB) {
-	createVkgroupSQL := `
-		CREATE TABLE IF NOT EXISTS vkgroup (
-			name string PRIMARY KEY NOT NULL
-		);`
-
-	_, err := db.Exec(createVkgroupSQL)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func getVkGroups(db *sql.DB) []VkGroup {

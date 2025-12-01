@@ -1,20 +1,26 @@
 package application
 
 import (
+	"database/sql"
+
+	"github.com/linealnan/glavredusgo/internal/db"
 	vkindexer "github.com/linealnan/glavredusgo/internal/vkindexer"
 )
 
 // Application представляет основное приложение
 type Application struct {
-	vi *vkindexer.VkIndexer
+	vi     *vkindexer.VkIndexer
+	dbconn *sql.DB
 }
 
-// NewApplication — это конструктор для Application, он зависит от conf.AppConfig
-func NewApplication(vi *vkindexer.VkIndexer) *Application {
-	return &Application{vi: vi}
+func NewApplication(vi *vkindexer.VkIndexer, dbconn *sql.DB) *Application {
+	return &Application{vi: vi, dbconn: dbconn}
 }
 
-// Run — метод запуска приложения, который использует логгер
 func (a *Application) Run() {
 	a.vi.GetAndIndexedPosts()
+	db.LoadSchema(a.dbconn)
+	db.LoadSchoolVkGroups(a.dbconn)
+
+	defer a.dbconn.Close()
 }

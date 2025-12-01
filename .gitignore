@@ -9,3 +9,4 @@ release/*
 blevesearch/cmd/glavredus.db
 cmd/history.bleve/store/*
 cmd/glavredus.db
+glavredus.db
