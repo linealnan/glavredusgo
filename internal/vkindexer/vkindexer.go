@@ -6,15 +6,16 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/bleve"
+	"github.com/linealnan/glavredusgo/internal/blevesearch"
 	conf "github.com/linealnan/glavredusgo/internal/config"
 	vkapi "github.com/romanraspopov/golang-vk-api"
 )
 
 type VkIndexer struct {
-	conf       *conf.AppConfig
-	bleveIndex bleve.Index
-	client     *vkapi.VKClient
-	db         *sql.DB
+	conf         *conf.AppConfig
+	bleaveSearch *blevesearch.BleaveSearch
+	client       *vkapi.VKClient
+	db           *sql.DB
 }
 
 type LoadedPost struct {
@@ -28,15 +29,15 @@ type VkGroup struct {
 	Name string
 }
 
-func NewVkIndexer(c *conf.AppConfig, index bleve.Index, client *vkapi.VKClient, db *sql.DB) *VkIndexer {
-	return &VkIndexer{conf: c, bleveIndex: index, client: client, db: db}
+func NewVkIndexer(c *conf.AppConfig, bleaveSearch *blevesearch.BleaveSearch, client *vkapi.VKClient, db *sql.DB) *VkIndexer {
+	return &VkIndexer{conf: c, bleaveSearch: bleaveSearch, client: client, db: db}
 }
 
 func (vi *VkIndexer) GetAndIndexedPosts() error {
 	groups := getVkGroups(vi.db)
 	log.Printf("Получение данных групп\n")
 	for _, group := range groups {
-		getAndIndexedWallPostByGroupName(vi.client, group.Name, vi.bleveIndex)
+		getAndIndexedWallPostByGroupName(vi.client, group.Name, vi.bleaveSearch.Index)
 	}
 
 	return nil

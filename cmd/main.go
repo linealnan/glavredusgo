@@ -10,7 +10,7 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/linealnan/glavredusgo/internal/application"
-	bleveindex "github.com/linealnan/glavredusgo/internal/bleveindex"
+	blevesearch "github.com/linealnan/glavredusgo/internal/blevesearch"
 	conf "github.com/linealnan/glavredusgo/internal/config"
 	db "github.com/linealnan/glavredusgo/internal/db"
 	"github.com/linealnan/glavredusgo/internal/vkclient"
@@ -61,12 +61,12 @@ func main() {
 	// loadSchoolVkGroups(db)
 
 	container := dig.New()
-
+	// TODO Переписать бороду условий
 	if err := container.Provide(conf.InitWithDotEnv); err != nil {
 		panic(err)
 	}
 
-	if err := container.Provide(bleveindex.NewBleveIndex); err != nil {
+	if err := container.Provide(blevesearch.NewBleaveSearch); err != nil {
 		panic(err)
 	}
 
@@ -122,15 +122,6 @@ func main() {
 
 			}); err != nil {
 				panic(err)
-			}
-
-			http.HandleFunc("/", formHandler)
-
-			// Запускаем сервер
-			log.Printf("Starting server at port 8080")
-			err := http.ListenAndServe(":8080", nil)
-			if err != nil {
-				log.Println("Error starting the server:", err)
 			}
 			return nil
 		},
@@ -206,17 +197,6 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Результат поиска: %s", searchResult)
 
 	}
-}
-
-func loadGroupsData(client *vkapi.VKClient, db *sql.DB) []LoadedPost {
-	var posts []LoadedPost
-	groups := getVkGroups(db)
-	log.Printf("Получение данных групп\n")
-	for _, group := range groups {
-		posts = append(posts, getAndIndexedWallPostByGroupName(client, group.Name, db)...)
-	}
-
-	return posts
 }
 
 func getAndIndexedWallPostByGroupName(client *vkapi.VKClient, groupName string, db *sql.DB) []LoadedPost {
@@ -388,6 +368,26 @@ func loadSchoolVkGroups(db *sql.DB) {
 		{"school414"},
 		{"newschool546"},
 		{"school547"},
+		{"csridi_geroev"},
+		{"ddtks"},
+		{"cbzh_cgpv"},
+		{"imc_krsel"},
+		{"shkrsl"},
+		{"guzhakra"},
+		{"club88310495"},
+		{"club164410468"},
+		{"kdk_krasnoselsky"},
+		{"krasnoselskiy_kcson"},
+		{"pmcligovo"},
+		{"club171353821"},
+		{"gp106"},
+		{"cfksiz"},
+		{"club200827129"},
+		{"club215863666"},
+		{"club147440843"},
+		{"club215786855"},
+		{"cbs_krlib"},
+		{"krocpmsskr"},
 	}
 
 	tx, err := db.Begin()
