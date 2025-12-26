@@ -80,25 +80,6 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			// if c.String("i") == "force" {
-
-			// 	token := os.Getenv("VK_API_TOKEN")
-			// 	client, err := vkapi.NewVKClientWithToken(token, nil, true)
-			// 	if err != nil {
-			// 		log.Fatal(err)
-			// 	}
-			// 	log.Printf("Загрузка данных групп\n")
-			// 	loadGroupsData(client, db)
-
-			// 	if err != nil {
-			// 		log.Fatal(err)
-			// 	}
-			// 	log.Printf("Индекс обновлен\n")
-
-			// }
-
-			// 3. Запускаем основную функцию приложения с помощью метода Invoke.
-			// Dig автоматически разрешает зависимости и вызывает переданную функцию с готовыми экземплярами.
 			if err := container.Invoke(func(app *application.Application) {
 				app.Run()
 
