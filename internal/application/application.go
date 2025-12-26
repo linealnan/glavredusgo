@@ -9,6 +9,7 @@ import (
 
 	blevesearch "github.com/linealnan/glavredusgo/internal/blevesearch"
 	"github.com/linealnan/glavredusgo/internal/db"
+	"github.com/linealnan/glavredusgo/internal/telegrambot"
 	vkindexer "github.com/linealnan/glavredusgo/internal/vkindexer"
 	"github.com/robfig/cron/v3"
 )
@@ -18,15 +19,21 @@ type Application struct {
 	vi           *vkindexer.VkIndexer
 	dbconn       *sql.DB
 	bleaveSearch *blevesearch.BleaveSearch
+	tb           *telegrambot.TelegramBot
 }
 
-type GetSearchIndex interface {
+type SearchHandler *TgSearchHandler
+type TgSearchHandler interface {
+	SearchAndFormat(bs blevesearch.BleaveSearch, searchPhrase string) string
 }
 
-type APIHandler struct{}
-
-func NewApplication(vi *vkindexer.VkIndexer, dbconn *sql.DB, bleaveSearch *blevesearch.BleaveSearch) *Application {
-	return &Application{vi: vi, dbconn: dbconn, bleaveSearch: bleaveSearch}
+func NewApplication(
+	vi *vkindexer.VkIndexer,
+	dbconn *sql.DB,
+	bleaveSearch *blevesearch.BleaveSearch,
+	tb *telegrambot.TelegramBot,
+) *Application {
+	return &Application{vi: vi, dbconn: dbconn, bleaveSearch: bleaveSearch, tb: tb}
 }
 
 func (a *Application) Run() {
@@ -38,14 +45,16 @@ func (a *Application) Run() {
 	// Создаем новый экземпляр cron
 	c := cron.New()
 
-	// Каждый час
-	c.AddFunc("0 * * * *", func() {
+	// Каждые 15 минут
+	c.AddFunc("*/15 * * * *", func() {
 		fmt.Println("Загрузка данных групп по расписанию:", time.Now())
 		a.vi.GetAndIndexedPosts()
 	})
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", searchHandler(*a.bleaveSearch))
+
+	go a.tb.SubsribeUpdates()
 
 	// Запускаем планировщик в фоновом режиме
 	c.Start()

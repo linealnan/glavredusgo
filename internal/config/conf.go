@@ -8,7 +8,8 @@ import (
 )
 
 type AppConfig struct {
-	VkApiToken string
+	VkApiToken          string
+	TelegramBotApiToken string
 }
 
 func InitWithDotEnv() *AppConfig {
@@ -19,6 +20,7 @@ func InitWithDotEnv() *AppConfig {
 
 	conf := new(AppConfig)
 	conf.VkApiToken = os.Getenv("VK_API_TOKEN")
+	conf.TelegramBotApiToken = os.Getenv("TOKEN")
 
 	return conf
 }

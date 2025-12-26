@@ -1,13 +1,19 @@
 package blevesearch
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/lang/ru"
 	"github.com/blevesearch/bleve/index/store/goleveldb"
 	"github.com/blevesearch/bleve/mapping"
 )
+
+type Searcher interface {
+	Search(query string) *bleve.SearchResult
+}
 
 type BleaveSearch struct {
 	Index bleve.Index
@@ -80,4 +86,19 @@ func buildMapping() *mapping.IndexMappingImpl {
 	//mapping.AddDocumentMapping("vkgoups", eventMapping)
 	mapping.DefaultAnalyzer = ru.AnalyzerName
 	return mapping
+}
+
+func (bs *BleaveSearch) TgSearch(searchPhrase string) string {
+	searchResult := bs.Search(searchPhrase)
+
+	var builder strings.Builder
+
+	builder.WriteString("Найдено документов: \n")
+	for _, hit := range searchResult.Hits {
+		fields := hit.Fields
+		builder.WriteString(fmt.Sprintf("https://vk.com/%s?w=wall-%s_%s\n", fields["GroupName"], fields["GroupID"], fields["ID"]))
+	}
+
+	return builder.String()
+	// fmt.Fprintf(w, "Результат поиска: %s", searchResult)
 }
