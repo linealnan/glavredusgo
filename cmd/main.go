@@ -16,13 +16,6 @@ import (
 	"go.uber.org/dig"
 )
 
-type IndexData struct {
-	ID        string `json:"id"`
-	Text      string `json:"text"`
-	GroupName string `json:"groupName"`
-	GroupID   string `json:"GroupID"`
-}
-
 type LoadedPost struct {
 	ID        string
 	Text      string
