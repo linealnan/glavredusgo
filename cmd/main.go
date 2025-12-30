@@ -16,20 +16,6 @@ import (
 	"go.uber.org/dig"
 )
 
-type LoadedPost struct {
-	ID        string
-	Text      string
-	GroupName string
-	GroupID   string
-}
-
-type MockGroup struct {
-	Name string
-}
-type VkGroup struct {
-	Name string
-}
-
 func main() {
 	container := dig.New()
 	// TODO Переписать бороду условий
