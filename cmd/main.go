@@ -8,7 +8,6 @@ import (
 	blevesearch "github.com/linealnan/glavredusgo/internal/blevesearch"
 	conf "github.com/linealnan/glavredusgo/internal/config"
 	db "github.com/linealnan/glavredusgo/internal/db"
-	"github.com/linealnan/glavredusgo/internal/telegrambot"
 	"github.com/linealnan/glavredusgo/internal/vkclient"
 	"github.com/linealnan/glavredusgo/internal/vkindexer"
 	_ "github.com/mattn/go-sqlite3"
@@ -38,10 +37,10 @@ func main() {
 	if err := container.Provide(vkindexer.NewVkIndexer); err != nil {
 		panic(err)
 	}
-
-	if err := container.Provide(telegrambot.NewTelegramBot); err != nil {
-		panic(err)
-	}
+	// Заблокировано в России
+	// if err := container.Provide(telegrambot.NewTelegramBot); err != nil {
+	// 	panic(err)
+	// }
 
 	if err := container.Provide(application.NewApplication); err != nil {
 		panic(err)

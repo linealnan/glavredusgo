@@ -31,9 +31,9 @@ func NewApplication(
 	vi *vkindexer.VkIndexer,
 	dbconn *sql.DB,
 	bleaveSearch *blevesearch.BleaveSearch,
-	tb *telegrambot.TelegramBot,
+	// tb *telegrambot.TelegramBot,
 ) *Application {
-	return &Application{vi: vi, dbconn: dbconn, bleaveSearch: bleaveSearch, tb: tb}
+	return &Application{vi: vi, dbconn: dbconn, bleaveSearch: bleaveSearch}
 }
 
 func (a *Application) Run() {
@@ -54,7 +54,8 @@ func (a *Application) Run() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", searchHandler(*a.bleaveSearch))
 
-	go a.tb.SubsribeUpdates()
+	// заблокировано в России
+	// go a.tb.SubsribeUpdates()
 
 	// Запускаем планировщик в фоновом режиме
 	c.Start()
