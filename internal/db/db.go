@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 )
 
@@ -16,10 +17,21 @@ type Db struct {
 }
 
 func NewDbConnection() *sql.DB {
-	path, err := filepath.Abs("../glavredus.db")
-	if err != nil {
-		fmt.Println(path)
+	// Получаем путь к БД из переменной окружения или используем значение по умолчанию
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "../glavredus.db"
 	}
+
+	// Если путь относительный, преобразуем в абсолютный
+	path, err := filepath.Abs(dbPath)
+	if err != nil {
+		fmt.Println("Error resolving DB path:", err)
+		path = dbPath
+	}
+
+	log.Printf("Using database path: %s", path)
+
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		panic(err)
