@@ -1,0 +1,64 @@
+definitions:
+  application.SearchRequest:
+    properties:
+      query:
+        type: string
+    type: object
+  application.SearchResponse:
+    properties:
+      error:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/application.SearchResult'
+        type: array
+      total:
+        type: integer
+    type: object
+  application.SearchResult:
+    properties:
+      group_id:
+        type: string
+      group_name:
+        type: string
+      id:
+        type: string
+      text:
+        type: string
+      url:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/search:
+    post:
+      consumes:
+      - application/json
+      description: Выполняет поиск по индексированным постам ВКонтакте
+      parameters:
+      - description: Запрос поиска
+        in: body
+        name: searchRequest
+        required: true
+        schema:
+          $ref: '#/definitions/application.SearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/application.SearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/application.SearchResponse'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/application.SearchResponse'
+      summary: Поиск постов
+      tags:
+      - search
+swagger: "2.0"

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: glavredusgo
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./history.bleve:/app/history.bleve
+    environment:
+      - VK_API_TOKEN=${VK_API_TOKEN}
+      - TOKEN=${TOKEN}
+      - DB_PATH=/app/data/glavredus.db
+      - BLEVE_PATH=/app/history.bleve
+    restart: unless-stopped
+
+  # SQLite браузер для удобной отладки (опционально)
+  # adminer:
+  #   image: adminer
+  #   container_name: glavredusgo-adminer
+  #   ports:
+  #     - "8081:8080"
+  #   restart: unless-stopped

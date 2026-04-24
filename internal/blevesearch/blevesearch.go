@@ -3,6 +3,7 @@ package blevesearch
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/blevesearch/bleve"
@@ -31,9 +32,15 @@ func NewBleaveSearch() *BleaveSearch {
 	}
 }
 
-const indexName string = "history.bleve"
-
 func initIndex() (bleve.Index, error) {
+	// Получаем путь к индексу из переменной окружения или используем значение по умолчанию
+	indexName := os.Getenv("BLEVE_PATH")
+	if indexName == "" {
+		indexName = "history.bleve"
+	}
+
+	log.Printf("Using Bleve index path: %s", indexName)
+
 	index, err := bleve.Open(indexName)
 	if err == bleve.ErrorIndexPathDoesNotExist {
 		mapping := buildMapping()
